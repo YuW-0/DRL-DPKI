@@ -59,8 +59,22 @@ preferred_fonts = ['Arial', 'DejaVu Sans', 'Liberation Sans', 'sans-serif'] if l
 matplotlib.rcParams['font.sans-serif'] = preferred_fonts
 matplotlib.rcParams['axes.unicode_minus'] = False
 
-# Add project path
-sys.path.append('/mnt/data/wy2024/baseline_methods')
+def get_output_root() -> Path:
+    configured = os.environ.get("DRL_DPKI_OUTPUT_DIR")
+    if configured:
+        return Path(configured)
+    legacy = Path("/mnt/data/wy2024")
+    if legacy.is_dir():
+        return legacy
+    repo_root = Path(__file__).resolve().parents[1]
+    return repo_root / "outputs"
+
+OUTPUT_ROOT = get_output_root()
+BASELINE_OUTPUT_ROOT = OUTPUT_ROOT / "baseline_methods"
+
+script_dir = Path(__file__).resolve().parent
+if str(script_dir) not in sys.path:
+    sys.path.insert(0, str(script_dir))
 
 # Import baseline strategies and environment
 try:
@@ -111,7 +125,8 @@ class ExperimentManager:
             save_dir: Result output directory
         """
         self.config = GlobalConfig()
-        self.save_dir = save_dir or f"/mnt/data/wy2024/baseline_methods/results/{datetime.now().strftime('%Y%m%d_%H%M%S')}"
+        default_dir = BASELINE_OUTPUT_ROOT / "results" / datetime.now().strftime('%Y%m%d_%H%M%S')
+        self.save_dir = save_dir or str(default_dir)
         self.results_dir = Path(self.save_dir)
         self.results_dir.mkdir(parents=True, exist_ok=True)
         
@@ -839,8 +854,8 @@ class ExperimentManager:
         if n_na is None:
             n_na = self.config.training.N_NA
 
-        comparison_dir = Path('/mnt/data/wy2024/baseline_methods/strategy_comparison')
-        comparison_dir.mkdir(exist_ok=True)
+        comparison_dir = BASELINE_OUTPUT_ROOT / "strategy_comparison"
+        comparison_dir.mkdir(parents=True, exist_ok=True)
 
         # Use a 5% step for malicious ratio, from 0% to 50%
         malicious_counts = []
@@ -934,8 +949,8 @@ class ExperimentManager:
         if n_na is None:
             n_na = self.config.training.N_NA
 
-        full_model_path = Path('/mnt/data/wy2024/models/policy_net_state_dict.pth')
-        ablation_model_path = Path('/mnt/data/wy2024/models_ablation_no_slidewindow/policy_net_state_dict.pth')
+        full_model_path = OUTPUT_ROOT / "models" / "policy_net_state_dict.pth"
+        ablation_model_path = OUTPUT_ROOT / "models_ablation_no_slidewindow" / "policy_net_state_dict.pth"
 
         if not full_model_path.is_file():
             raise FileNotFoundError(f"Model file does not exist: {full_model_path}")
@@ -2159,7 +2174,7 @@ def main():
         try:
             manager = ExperimentManager(
                 config_name='STRATEGY_COMPARISON_CI',
-                save_dir='/mnt/data/wy2024/baseline_methods/strategy_comparison/ci'
+                save_dir=str(BASELINE_OUTPUT_ROOT / 'strategy_comparison' / 'ci')
             )
 
             manager.run_all_strategies_comparison_ci(
@@ -2170,7 +2185,7 @@ def main():
             )
 
             print("\n Repeated all-strategies comparison completed!")
-            print(" Results saved to: /mnt/data/wy2024/baseline_methods/strategy_comparison/ci/")
+            print(f" Results saved to: {BASELINE_OUTPUT_ROOT / 'strategy_comparison' / 'ci'}")
 
             return 0
 
@@ -2190,7 +2205,7 @@ def main():
             # Create experiment manager
             manager = ExperimentManager(
                 config_name='STRATEGY_COMPARISON',
-                save_dir='/mnt/data/wy2024/baseline_methods/strategy_comparison'
+                save_dir=str(BASELINE_OUTPUT_ROOT / 'strategy_comparison')
             )
             
             # Run full comparison
@@ -2202,7 +2217,7 @@ def main():
             )
             
             print("\n All-strategies comparison completed!")
-            print(" Results saved to: /mnt/data/wy2024/baseline_methods/strategy_comparison/")
+            print(f" Results saved to: {BASELINE_OUTPUT_ROOT / 'strategy_comparison'}")
             
             return 0
             
@@ -2228,7 +2243,7 @@ def main():
         try:
             manager = ExperimentManager(
                 config_name='CA_SCALE_SENSITIVITY',
-                save_dir='/mnt/data/wy2024/baseline_methods/strategy_comparison/ca_scale_sensitivity'
+                save_dir=str(BASELINE_OUTPUT_ROOT / 'strategy_comparison' / 'ca_scale_sensitivity')
             )
 
             manager.run_ca_scale_sensitivity(
@@ -2262,7 +2277,7 @@ def main():
         try:
             manager = ExperimentManager(
                 config_name='DRL_COLD_WARM',
-                save_dir='/mnt/data/wy2024/baseline_methods/strategy_comparison'
+                save_dir=str(BASELINE_OUTPUT_ROOT / 'strategy_comparison')
             )
 
             manager.run_drl_cold_warm_comparison(
@@ -2273,7 +2288,7 @@ def main():
             )
 
             print("\n DRL cold/warm comparison completed!")
-            print(" Results saved to: /mnt/data/wy2024/baseline_methods/strategy_comparison/")
+            print(f" Results saved to: {BASELINE_OUTPUT_ROOT / 'strategy_comparison'}")
             return 0
 
         except KeyboardInterrupt:
@@ -2306,7 +2321,7 @@ def main():
                 try:
                     manager = ExperimentManager(
                         config_name='STRATEGY_COMPARISON',
-                        save_dir='/mnt/data/wy2024/baseline_methods/strategy_comparison'
+                        save_dir=str(BASELINE_OUTPUT_ROOT / 'strategy_comparison')
                     )
                     
                     # Use a fixed NA scale of 20 for all-strategies comparison
@@ -2318,7 +2333,7 @@ def main():
                     )
                     
                     print("\n All-strategies comparison completed!")
-                    print(" Results saved to: /mnt/data/wy2024/baseline_methods/strategy_comparison/")
+                    print(f" Results saved to: {BASELINE_OUTPUT_ROOT / 'strategy_comparison'}")
                     return 0
                     
                 except Exception as e:
@@ -2330,7 +2345,7 @@ def main():
                     warmup_first_round = default_config['ca_scale_startup'] == 'warm'
                     manager = ExperimentManager(
                         config_name='CA_SCALE_SENSITIVITY',
-                        save_dir='/mnt/data/wy2024/baseline_methods/strategy_comparison/ca_scale_sensitivity'
+                        save_dir=str(BASELINE_OUTPUT_ROOT / 'strategy_comparison' / 'ca_scale_sensitivity')
                     )
 
                     manager.run_ca_scale_sensitivity(
@@ -2354,7 +2369,7 @@ def main():
                 try:
                     manager = ExperimentManager(
                         config_name='DRL_COLD_WARM',
-                        save_dir='/mnt/data/wy2024/baseline_methods/strategy_comparison'
+                        save_dir=str(BASELINE_OUTPUT_ROOT / 'strategy_comparison')
                     )
 
                     manager.run_drl_cold_warm_comparison(
@@ -2365,7 +2380,7 @@ def main():
                     )
 
                     print("\n DRL cold/warm comparison completed!")
-                    print(" Results saved to: /mnt/data/wy2024/baseline_methods/strategy_comparison/")
+                    print(f" Results saved to: {BASELINE_OUTPUT_ROOT / 'strategy_comparison'}")
                     return 0
 
                 except Exception as e:
@@ -2377,7 +2392,7 @@ def main():
                 try:
                     manager = ExperimentManager(
                         config_name='DRL_SLIDEWINDOW_ABLATION',
-                        save_dir='/mnt/data/wy2024/baseline_methods/strategy_comparison/slidewindow_ablation'
+                        save_dir=str(BASELINE_OUTPUT_ROOT / 'strategy_comparison' / 'slidewindow_ablation')
                     )
 
                     manager.run_drl_slidewindow_ablation_comparison(
@@ -2388,7 +2403,7 @@ def main():
                     )
 
                     print("\n Sliding-window ablation comparison completed!")
-                    print(" Results saved to: /mnt/data/wy2024/baseline_methods/strategy_comparison/slidewindow_ablation/")
+                    print(f" Results saved to: {BASELINE_OUTPUT_ROOT / 'strategy_comparison' / 'slidewindow_ablation'}")
                     return 0
 
                 except Exception as e:

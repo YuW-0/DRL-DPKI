@@ -20,9 +20,20 @@ from environment import NAEnvironment, NAConfig, create_baseline_environment
 from parameter import GlobalConfig, get_standard_config
 import time
 import json
+import os
 import torch
 import torch.nn as nn
 from pathlib import Path
+
+def get_output_root() -> Path:
+    configured = os.environ.get("DRL_DPKI_OUTPUT_DIR")
+    if configured:
+        return Path(configured)
+    legacy = Path("/mnt/data/wy2024")
+    if legacy.is_dir():
+        return legacy
+    repo_root = Path(__file__).resolve().parents[1]
+    return repo_root / "outputs"
 
 
 class NASelectionStrategy(ABC):
@@ -164,7 +175,7 @@ class DDQNModelStrategy(NASelectionStrategy):
             self.device = torch.device(device)
         
         if model_path is None:
-            model_path = '/mnt/data/wy2024/models/policy_net_state_dict.pth'
+            model_path = str(get_output_root() / "models" / "policy_net_state_dict.pth")
         
         self.model_path = model_path
         self.model = None

@@ -155,7 +155,7 @@ def test_comparison_with_normal_strategy():
         print(f"  Success rate: {result2['avg_success_rate']:.3f}")
     except Exception as e:
         print(f"  DDQN test failed: {e}")
-        print("  Ensure the model file exists: /mnt/data/wy2024/models/policy_net_state_dict.pth")
+        print("  Ensure the model file exists: <output_root>/models/policy_net_state_dict.pth")
 
 if __name__ == "__main__":
     test_ddqn_cycle_mode()

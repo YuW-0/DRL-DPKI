@@ -1,6 +1,7 @@
 import argparse
 import csv
 import json
+import os
 import shutil
 from datetime import datetime
 from pathlib import Path
@@ -8,6 +9,16 @@ from typing import Optional
 
 from parameter import GlobalConfig
 from main import ExperimentManager
+
+def get_output_root() -> Path:
+    configured = os.environ.get("DRL_DPKI_OUTPUT_DIR")
+    if configured:
+        return Path(configured)
+    legacy = Path("/mnt/data/wy2024")
+    if legacy.is_dir():
+        return legacy
+    repo_root = Path(__file__).resolve().parents[1]
+    return repo_root / "outputs"
 
 
 def _load_json(path: Path) -> dict:
@@ -84,12 +95,19 @@ def _extract_final_malicious_selection_rate_percent(
 
 def main() -> int:
     config = GlobalConfig()
+    default_result_json = (
+        get_output_root()
+        / "baseline_methods"
+        / "strategy_comparison"
+        / "ca_scale_sensitivity"
+        / "ca_scale_sensitivity_results.json"
+    )
 
     parser = argparse.ArgumentParser()
     parser.add_argument(
         "--result-json",
         type=str,
-        default="/mnt/data/wy2024/baseline_methods/strategy_comparison/ca_scale_sensitivity/ca_scale_sensitivity_results.json",
+        default=str(default_result_json),
     )
     parser.add_argument("--start-scale", type=int, default=100)
     parser.add_argument("--end-scale", type=int, default=3000)
