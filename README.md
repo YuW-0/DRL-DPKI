@@ -95,3 +95,16 @@ Outputs (plots, checkpoints, CSVs) are written under an output root directory:
 - This repository is organized as runnable research scripts rather than a packaged Python library.
 - Smart-contract code in `cost_analysis/onchain_cost/` is provided for experimentation only and is not security-audited.
 
+## Partial Open Source Notice
+
+This repository is partially open-sourced to share the overall framework, design ideas, and reproducible components of the project.
+
+Some core modules and implementation details are currently withheld because they are still under active research and development. These components may involve:
+- ongoing experiments
+- unpublished results
+- directions that are not yet stable enough for public release
+
+We plan to progressively release more parts of the project once the research reaches a more mature stage.
+
+Thank you for your understanding and interest in this work.  
+If you have questions or would like to collaborate, feel free to open an issue or get in touch.
